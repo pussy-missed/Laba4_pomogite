@@ -1,0 +1,153 @@
+#include "framework.h"
+#include "Laba10_v2.h"
+#include <windows.h>
+
+LRESULT CALLBACK WinFun(HWND, UINT, WPARAM, LPARAM);
+char WinName[] = "Окно";
+
+int WINAPI WinMain(HINSTANCE hIns, HINSTANCE hPrevIns, LPSTR arg, int WinMode)
+{
+	HWND hwnd; //Дескриптор окна
+	MSG msg; //содержит инфу, посылаемую в Windows
+	WNDCLASSEX wcl; //определяет класс окна
+
+	//определение класса окна
+	wcl.hInstance = hIns;								//дескриптор данного экземпляра
+	wcl.lpszClassName = (LPCWSTR)WinName;							//имя класса
+	wcl.lpfnWndProc = WinFun;							//функция окна
+	wcl.style = 0;										//стиль, по умолчанию
+	wcl.cbSize = sizeof(WNDCLASSEX);						//размерструктуры
+	wcl.hIcon = LoadIcon(NULL, IDI_APPLICATION);		//Большая пиктограмма
+	wcl.hIconSm = LoadIcon(NULL, IDI_WINLOGO);			//Малая пиктограмма
+	wcl.hCursor = LoadCursor(NULL, IDC_ARROW);			//Форма курсора
+	wcl.lpszMenuName = NULL;							//Меню не используется
+	wcl.cbClsExtra = 0;									//Доп информация отсутсвует
+	wcl.cbWndExtra = 0;
+
+	wcl.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+
+	if (!RegisterClassEx(&wcl)) return 0;
+
+	hwnd = CreateWindow(
+		(LPCTSTR)WinName,
+		(LPCTSTR)"Мое простое окно",
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		HWND_DESKTOP,
+		NULL,
+		hIns,
+		NULL
+	);
+
+	ShowWindow(hwnd, WinMode);
+	UpdateWindow(hwnd);
+
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	return msg.wParam;
+}
+
+struct Line
+{
+	int x1, x2, y1, y2;
+};
+
+struct LineList
+{
+	Line L;
+	LineList* pNext;
+};
+
+LineList* pFirst = 0;
+LineList* p;
+
+void add(LineList*& pF, LineList* p)
+{
+	p->pNext = pF;
+	pF = p;
+}
+
+int x1, x2, y1, y2;
+HPEN pB, pW, pB2;
+
+LRESULT CALLBACK WinFun(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	HDC hdc;
+	PAINTSTRUCT ps;
+
+	switch (message)
+	{
+	case WM_CREATE:
+		pB = (HPEN)CreateHatchBrush(HS_VERTICAL, RGB(204, 0, 0));
+		pB2 = CreatePen(PS_DASHDOTDOT, 1, RGB(0, 102, 0));
+		pW = (HPEN)GetStockObject(WHITE_PEN);
+		break;
+	case WM_RBUTTONDOWN:
+		x2 = x1 = LOWORD(lParam);
+		y2 = y1 = HIWORD(lParam);
+		break;
+	case WM_MOUSEMOVE:
+		if (wParam & MK_RBUTTON)
+		{
+			hdc = GetDC(hwnd);
+			SelectObject(hdc, pW);
+			MoveToEx(hdc, x1, y1, (LPPOINT)NULL);
+			Ellipse(hdc, x1, y1, x2, y2);
+			SelectObject(hdc, pB2);
+			x2 = LOWORD(lParam);
+			y2 = HIWORD(lParam);
+			SelectObject(hdc, pB);
+			MoveToEx(hdc, x1, y1, (LPPOINT)NULL);
+			Ellipse(hdc, x1, y1, x2, y2);
+			ReleaseDC(hwnd, hdc);
+		}
+		break;
+	case WM_RBUTTONUP:
+		p = new LineList;
+		p->L.x1 = x1;
+		p->L.x2 = x2;
+		p->L.y1 = y1;
+		p->L.y2 = y2;
+		add(pFirst, p);
+		break;
+	case WM_PAINT:
+		hdc = BeginPaint(hwnd, &ps);
+		p - pFirst;
+
+		while (p)
+		{
+			MoveToEx(hdc, p->L.x1, p->L.y1, (LPPOINT)NULL);
+			LineTo(hdc, p->L.x2, p->L.y2);
+			p = p->pNext;
+		}
+
+		EndPaint(hwnd, &ps);
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	default:
+		return DefWindowProc(hwnd, message, wParam, lParam);
+	}
+	return 0;
+}
+/*Разработайте приложение для рисования в окне с помощью мыши
+(функции простого графического редактора). При рисовании фигур (кроме
+кругов по следу курсора мыши при перемещении мыши с нажатой
+клавишей) начальная точка фигуры (конец отрезка, вершина
+прямоугольника) определяется координатами курсора мыши в момент
+нажатия клавиши мыши, конечная точка фигуры (другой конец отрезка,
+противоположная вершина прямоугольника и т. п.) определяется
+координатами курсора мыши в момент отпускания клавиши мыши.
+Рисование происходит при перемещении курсора мыши с нажатой
+клавишей. При рисовании овалов, вписанных в прямоугольники, сами
+прямоугольники не рисуются. При рисовании кругов по следу курсора при
+перемещении мыши с нажатой клавишей диаметр рисуемых кругов не
+менее 50 пикселей.*/
