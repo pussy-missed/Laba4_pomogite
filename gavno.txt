@@ -1,7 +1,7 @@
 #include "framework.h"
 #include "Laba10_v2.h"
 #include <windows.h>
-
+Хуй
 LRESULT CALLBACK WinFun(HWND, UINT, WPARAM, LPARAM);
 char WinName[] = "Окно";
 
