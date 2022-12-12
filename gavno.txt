@@ -1,10 +1,11 @@
 #include "framework.h"
 #include "Laba10_v2.h"
 #include <windows.h>
-Хуй
-я залупа
+
 LRESULT CALLBACK WinFun(HWND, UINT, WPARAM, LPARAM);
-char WinName[] = "Окно";
+//char WinName[] = "Окно";
+
+char WinName[] = "Мое гениальное оконо для 4-ой лабы по ТРПО";
 
 int WINAPI WinMain(HINSTANCE hIns, HINSTANCE hPrevIns, LPSTR arg, int WinMode)
 {
