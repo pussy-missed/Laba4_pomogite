@@ -3,6 +3,7 @@
 #include <windows.h>
 хуй
 
+666
 23423
 LRESULT CALLBACK WinFun(HWND, UINT, WPARAM, LPARAM);
 //char WinName[] = "Окно";
